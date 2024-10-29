@@ -103,4 +103,29 @@ public class Education {
 
     @ElementCollection
     private List<String> achievements;
+}
+
+
+Portfolio Theme Model
+
+package com.portfolio.api.model;
+
+import jakarta.persistence.*;
+import lombok.Data;
+
+@Data
+@Entity
+@Table(name = "themes")
+public class Theme {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String name;
+    private String description;
+
+    @Column(columnDefinition = "TEXT")
+    private String cssStyles;
+
+    private boolean isDefault;
 }```
