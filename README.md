@@ -3,6 +3,8 @@
 
 A feature-rich application that allows users to create, customize, and download professional CVs and resumes.
 
+spell checker https://languagetool.org/
+
 ## Key Features
 
 ### 1. User Profile Management
