@@ -69,42 +69,156 @@ spell checker https://languagetool.org/
 With these features, the app offers a comprehensive and intuitive experience, allowing users to create high-quality, professional CVs tailored to their needs.
 
 
-```// User Model
-package com.portfolio.api.model;
+```package com.portfolio.api.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 import lombok.Data;
-import java.util.List;
-import java.util.Set;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import java.time.LocalDateTime;
+import java.util.*;
 
 @Data
 @Entity
 @Table(name = "users")
-public class User {
+public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @NotBlank(message = "First name is required")
+    @Column(name = "first_name")
     private String firstName;
+
+    @NotBlank(message = "Last name is required")
+    @Column(name = "last_name")
     private String lastName;
+
+    @Email(message = "Please provide a valid email address")
+    @Column(unique = true, nullable = false)
     private String email;
+
+    @Pattern(regexp = "^\\+?[1-9]\\d{1,14}$", message = "Please provide a valid phone number")
     private String phone;
+
+    @NotBlank(message = "Password is required")
+    private String password;
+
+    @Column(length = 100)
     private String title;
+
+    @Column(length = 1000)
     private String summary;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Experience> experiences;
+    @Column(name = "profile_image_url")
+    private String profileImageUrl;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Education> educations;
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<CV> cvs = new ArrayList<>();
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Project> projects;
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<SocialLink> socialLinks = new ArrayList<>();
 
-    @ElementCollection
-    private Set<String> skills;
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "role")
+    private Set<String> roles = new HashSet<>();
+
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    private boolean active = true;
+
+    // UserDetails implementation
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return roles.stream()
+                .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    @Override
+    public String getUsername() {
+        return email;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return active;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return active;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return active;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return active;
+    }
 }
 
-// Experience Model
+@Data
+@Entity
+@Table(name = "cvs")
+public class CV {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    @NotBlank(message = "CV title is required")
+    private String title;
+
+    private String slug;
+
+    @OneToMany(mappedBy = "cv", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Experience> experiences = new ArrayList<>();
+
+    @OneToMany(mappedBy = "cv", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Education> educations = new ArrayList<>();
+
+    @OneToMany(mappedBy = "cv", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Skill> skills = new ArrayList<>();
+
+    @OneToMany(mappedBy = "cv", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Project> projects = new ArrayList<>();
+
+    @Column(name = "template_name")
+    private String templateName;
+
+    private boolean isPublic = false;
+
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @Version
+    private Long version;
+}
+
 @Data
 @Entity
 @Table(name = "experiences")
@@ -113,21 +227,75 @@ public class Experience {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cv_id")
+    private CV cv;
 
+    @NotBlank(message = "Company name is required")
     private String company;
+
+    @NotBlank(message = "Position is required")
     private String position;
-    private String startDate;
-    private String endDate;
+
+    @NotNull(message = "Start date is required")
+    @Column(name = "start_date")
+    private LocalDateTime startDate;
+
+    @Column(name = "end_date")
+    private LocalDateTime endDate;
+
+    @Column(length = 2000)
     private String description;
 
     @ElementCollection
-    private List<String> achievements;
+    @CollectionTable(name = "experience_achievements", 
+                    joinColumns = @JoinColumn(name = "experience_id"))
+    @Column(name = "achievement", length = 500)
+    private List<String> achievements = new ArrayList<>();
+
+    private boolean current = false;
+
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 }
 
-// Project Model
+@Data
+@Entity
+@Table(name = "skills")
+public class Skill {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cv_id")
+    private CV cv;
+
+    @NotBlank(message = "Skill name is required")
+    private String name;
+
+    @Enumerated(EnumType.STRING)
+    private SkillLevel level;
+
+    @Enumerated(EnumType.STRING)
+    private SkillCategory category;
+
+    private Integer yearsOfExperience;
+
+    public enum SkillLevel {
+        BEGINNER, INTERMEDIATE, ADVANCED, EXPERT
+    }
+
+    public enum SkillCategory {
+        TECHNICAL, SOFT_SKILL, LANGUAGE, TOOL, OTHER
+    }
+}
+
 @Data
 @Entity
 @Table(name = "projects")
@@ -136,23 +304,47 @@ public class Project {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cv_id")
+    private CV cv;
 
+    @NotBlank(message = "Project name is required")
     private String name;
+
+    @Column(length = 2000)
     private String description;
+
+    @Pattern(regexp = "^(https?://)?github\\.com/.+$", message = "Please provide a valid GitHub URL")
     private String githubUrl;
+
+    @Pattern(regexp = "^(https?)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]", 
+            message = "Please provide a valid URL")
     private String liveUrl;
 
     @ElementCollection
-    private Set<String> technologies;
+    @CollectionTable(name = "project_technologies", 
+                    joinColumns = @JoinColumn(name = "project_id"))
+    private Set<String> technologies = new HashSet<>();
 
     @ElementCollection
-    private List<String> highlights;
+    @CollectionTable(name = "project_highlights", 
+                    joinColumns = @JoinColumn(name = "project_id"))
+    @Column(name = "highlight", length = 500)
+    private List<String> highlights = new ArrayList<>();
+
+    private LocalDateTime startDate;
+    private LocalDateTime endDate;
+    private boolean featured;
+
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 }
 
-// Education Model
 @Data
 @Entity
 @Table(name = "education")
@@ -161,28 +353,43 @@ public class Education {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cv_id")
+    private CV cv;
 
+    @NotBlank(message = "Institution name is required")
     private String institution;
+
+    @NotBlank(message = "Degree is required")
     private String degree;
+
     private String field;
-    private String startDate;
-    private String endDate;
+
+    @NotNull(message = "Start date is required")
+    private LocalDateTime startDate;
+
+    private LocalDateTime endDate;
+
+    @DecimalMin(value = "0.0", message = "GPA must be greater than or equal to 0")
+    @DecimalMax(value = "4.0", message = "GPA must be less than or equal to 4.0")
     private Double gpa;
 
     @ElementCollection
-    private List<String> achievements;
+    @CollectionTable(name = "education_achievements", 
+                    joinColumns = @JoinColumn(name = "education_id"))
+    @Column(name = "achievement", length = 500)
+    private List<String> achievements = new ArrayList<>();
+
+    private boolean current = false;
+
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 }
-
-
-Portfolio Theme Model
-
-package com.portfolio.api.model;
-
-import jakarta.persistence.*;
-import lombok.Data;
 
 @Data
 @Entity
@@ -192,11 +399,47 @@ public class Theme {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank(message = "Theme name is required")
     private String name;
+
     private String description;
 
     @Column(columnDefinition = "TEXT")
     private String cssStyles;
 
-    private boolean isDefault;
+    @Column(name = "preview_image_url")
+    private String previewImageUrl;
+
+    private boolean active = true;
+
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+}
+
+@Data
+@Entity
+@Table(name = "social_links")
+public class SocialLink {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    @NotBlank(message = "Platform name is required")
+    private String platform;
+
+    @NotBlank(message = "URL is required")
+    @Pattern(regexp = "^(https?)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]",
+            message = "Please provide a valid URL")
+    private String url;
+
+    private String icon;
 }```
