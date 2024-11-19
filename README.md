@@ -68,378 +68,388 @@ spell checker https://languagetool.org/
 
 With these features, the app offers a comprehensive and intuitive experience, allowing users to create high-quality, professional CVs tailored to their needs.
 
-
-```package com.portfolio.api.model;
+package com.yourcompany.cvmanagement.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
 import lombok.Data;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.List;
+import java.util.UUID;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
-@Table(name = "users")
-public class User implements UserDetails {
+@Table(name = "cv", 
+    indexes = {
+        @Index(columnList = "title"),
+        @Index(columnList = "language_code"),
+        @Index(columnList = "created_at")
+    }
+)
+public class Cv {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
-    @NotBlank(message = "First name is required")
-    @Column(name = "first_name")
-    private String firstName;
-
-    @NotBlank(message = "Last name is required")
-    @Column(name = "last_name")
-    private String lastName;
-
-    @Email(message = "Please provide a valid email address")
-    @Column(unique = true, nullable = false)
-    private String email;
-
-    @Pattern(regexp = "^\\+?[1-9]\\d{1,14}$", message = "Please provide a valid phone number")
-    private String phone;
-
-    @NotBlank(message = "Password is required")
-    private String password;
-
-    @Column(length = 100)
+    @Column(nullable = false, length = 255)
     private String title;
 
     @Column(length = 1000)
     private String summary;
 
-    @Column(name = "profile_image_url")
-    private String profileImageUrl;
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private CvStatus status;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<CV> cvs = new ArrayList<>();
+    @Column(name = "language_code", length = 10)
+    private String languageCode;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<SocialLink> socialLinks = new ArrayList<>();
+    @OneToMany(mappedBy = "cv", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("orderIndex ASC")
+    private List<Section> sections;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
-    @Column(name = "role")
-    private Set<String> roles = new HashSet<>();
+    @ManyToOne
+    @JoinColumn(name = "template_id")
+    private Template template;
 
-    @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
-    @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    private boolean active = true;
-
-    // UserDetails implementation
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return roles.stream()
-                .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
-                .collect(java.util.stream.Collectors.toList());
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
     }
 
-    @Override
-    public String getUsername() {
-        return email;
-    }
-
-    @Override
-    public boolean isAccountNonExpired() {
-        return active;
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return active;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return active;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return active;
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
     }
 }
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
-@Table(name = "cvs")
-public class CV {
+@Table(name = "section", 
+    indexes = {
+        @Index(columnList = "cv_id,order_index"),
+        @Index(columnList = "type")
+    }
+)
+public class Section {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @JoinColumn(name = "cv_id", nullable = false)
+    private Cv cv;
 
-    @NotBlank(message = "CV title is required")
+    @Column(nullable = false, length = 100)
+    private String type;
+
+    @Column(nullable = false, length = 255)
     private String title;
 
-    private String slug;
+    @Column(name = "order_index")
+    private int orderIndex;
 
-    @OneToMany(mappedBy = "cv", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Experience> experiences = new ArrayList<>();
+    @Column(name = "is_visible")
+    private boolean visible = true;
 
-    @OneToMany(mappedBy = "cv", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Education> educations = new ArrayList<>();
+    @OneToMany(mappedBy = "section", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("orderIndex ASC")
+    private List<SectionContent> contents;
 
-    @OneToMany(mappedBy = "cv", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Skill> skills = new ArrayList<>();
-
-    @OneToMany(mappedBy = "cv", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Project> projects = new ArrayList<>();
-
-    @Column(name = "template_name")
-    private String templateName;
-
-    private boolean isPublic = false;
-
-    @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
-    @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @Version
-    private Long version;
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 }
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
-@Table(name = "experiences")
-public class Experience {
+@Table(name = "section_content", 
+    indexes = {
+        @Index(columnList = "section_id,order_index"),
+        @Index(columnList = "content_type")
+    }
+)
+public class SectionContent {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "cv_id")
-    private CV cv;
+    @JoinColumn(name = "section_id", nullable = false)
+    private Section section;
 
-    @NotBlank(message = "Company name is required")
-    private String company;
+    @Column(name = "content_type", nullable = false, length = 50)
+    private String contentType;
 
-    @NotBlank(message = "Position is required")
-    private String position;
+    @Column(columnDefinition = "jsonb")
+    @JdbcTypeCode(SqlTypes.JSON)
+    private String content;
 
-    @NotNull(message = "Start date is required")
+    @Column(name = "order_index")
+    private int orderIndex;
+
     @Column(name = "start_date")
     private LocalDateTime startDate;
 
     @Column(name = "end_date")
     private LocalDateTime endDate;
 
-    @Column(length = 2000)
-    private String description;
+    @Column(name = "is_current")
+    private boolean current;
 
-    @ElementCollection
-    @CollectionTable(name = "experience_achievements", 
-                    joinColumns = @JoinColumn(name = "experience_id"))
-    @Column(name = "achievement", length = 500)
-    private List<String> achievements = new ArrayList<>();
-
-    private boolean current = false;
-
-    @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
-    @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-}
 
-@Data
-@Entity
-@Table(name = "skills")
-public class Skill {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "cv_id")
-    private CV cv;
-
-    @NotBlank(message = "Skill name is required")
-    private String name;
-
-    @Enumerated(EnumType.STRING)
-    private SkillLevel level;
-
-    @Enumerated(EnumType.STRING)
-    private SkillCategory category;
-
-    private Integer yearsOfExperience;
-
-    public enum SkillLevel {
-        BEGINNER, INTERMEDIATE, ADVANCED, EXPERT
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
     }
 
-    public enum SkillCategory {
-        TECHNICAL, SOFT_SKILL, LANGUAGE, TOOL, OTHER
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
     }
 }
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
-@Table(name = "projects")
-public class Project {
+@Table(name = "template", 
+    indexes = {
+        @Index(columnList = "name"),
+        @Index(columnList = "active")
+    }
+)
+public class Template {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "cv_id")
-    private CV cv;
-
-    @NotBlank(message = "Project name is required")
+    @Column(nullable = false, length = 255)
     private String name;
 
-    @Column(length = 2000)
+    @Column(length = 1000)
     private String description;
 
-    @Pattern(regexp = "^(https?://)?github\\.com/.+$", message = "Please provide a valid GitHub URL")
-    private String githubUrl;
+    @Column(columnDefinition = "jsonb")
+    @JdbcTypeCode(SqlTypes.JSON)
+    private String defaultStyles;
 
-    @Pattern(regexp = "^(https?)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]", 
-            message = "Please provide a valid URL")
-    private String liveUrl;
+    @Column(columnDefinition = "jsonb")
+    @JdbcTypeCode(SqlTypes.JSON)
+    private String layoutConfig;
 
-    @ElementCollection
-    @CollectionTable(name = "project_technologies", 
-                    joinColumns = @JoinColumn(name = "project_id"))
-    private Set<String> technologies = new HashSet<>();
-
-    @ElementCollection
-    @CollectionTable(name = "project_highlights", 
-                    joinColumns = @JoinColumn(name = "project_id"))
-    @Column(name = "highlight", length = 500)
-    private List<String> highlights = new ArrayList<>();
-
-    private LocalDateTime startDate;
-    private LocalDateTime endDate;
-    private boolean featured;
-
-    @CreationTimestamp
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
-}
-
-@Data
-@Entity
-@Table(name = "education")
-public class Education {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "cv_id")
-    private CV cv;
-
-    @NotBlank(message = "Institution name is required")
-    private String institution;
-
-    @NotBlank(message = "Degree is required")
-    private String degree;
-
-    private String field;
-
-    @NotNull(message = "Start date is required")
-    private LocalDateTime startDate;
-
-    private LocalDateTime endDate;
-
-    @DecimalMin(value = "0.0", message = "GPA must be greater than or equal to 0")
-    @DecimalMax(value = "4.0", message = "GPA must be less than or equal to 4.0")
-    private Double gpa;
-
-    @ElementCollection
-    @CollectionTable(name = "education_achievements", 
-                    joinColumns = @JoinColumn(name = "education_id"))
-    @Column(name = "achievement", length = 500)
-    private List<String> achievements = new ArrayList<>();
-
-    private boolean current = false;
-
-    @CreationTimestamp
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
-}
-
-@Data
-@Entity
-@Table(name = "themes")
-public class Theme {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @NotBlank(message = "Theme name is required")
-    private String name;
-
-    private String description;
-
-    @Column(columnDefinition = "TEXT")
-    private String cssStyles;
-
-    @Column(name = "preview_image_url")
-    private String previewImageUrl;
-
+    @Column(name = "is_active")
     private boolean active = true;
 
-    @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
-    @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 }
 
-@Data
-@Entity
-@Table(name = "social_links")
-public class SocialLink {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+// Enum for CV Status
+public enum CvStatus {
+    DRAFT,
+    IN_PROGRESS,
+    COMPLETED,
+    ARCHIVED
+}
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
+// PostgreSQL Specific Database Configuration
+@Configuration
+public class DatabaseConfig {
+    @Bean
+    public DataSource dataSource() {
+        HikariDataSource dataSource = new HikariDataSource();
+        dataSource.setDriverClassName("org.postgresql.Driver");
+        dataSource.setJdbcUrl("jdbc:postgresql://localhost:5432/cvmanagement");
+        dataSource.setUsername("your_username");
+        dataSource.setPassword("your_password");
+        return dataSource;
+    }
+}
 
-    @NotBlank(message = "Platform name is required")
-    private String platform;
+// application.properties additional configurations
+/*
+# Hibernate ddl auto (create, create-drop, validate, update)
+spring.jpa.hibernate.ddl-auto=update
 
-    @NotBlank(message = "URL is required")
-    @Pattern(regexp = "^(https?)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]",
-            message = "Please provide a valid URL")
-    private String url;
+# The SQL dialect makes Hibernate generate better SQL for the chosen database
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
 
-    private String icon;
-}```
+# Logging SQL statements
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.format_sql=true
+
+# Connection pool configuration
+spring.datasource.hikari.maximum-pool-size=10
+spring.datasource.hikari.idle-timeout=10000
+*/```
+
+
+# CV Management RESTful API Endpoints
+
+## CV Endpoints
+1. `GET /cvs`
+   - List all CVs
+   - Query parameters: 
+     - `page` (pagination)
+     - `size` (page size)
+     - `sort` (sorting field)
+     - `status` (filter by CV status)
+     - `language` (filter by language)
+
+2. `POST /cvs`
+   - Create a new CV
+   - Request body: CV object
+   - Returns created CV with ID
+
+3. `GET /cvs/{cvId}`
+   - Retrieve a specific CV by ID
+   - Includes full CV details with sections
+
+4. `PUT /cvs/{cvId}`
+   - Update an existing CV
+   - Request body: Updated CV details
+
+5. `DELETE /cvs/{cvId}`
+   - Delete a specific CV
+
+## Section Endpoints
+6. `GET /cvs/{cvId}/sections`
+   - List all sections for a specific CV
+   - Query parameters:
+     - `visible` (filter by visibility)
+     - `type` (filter by section type)
+
+7. `POST /cvs/{cvId}/sections`
+   - Create a new section for a specific CV
+   - Request body: Section object
+   - Returns created section with ID
+
+8. `GET /cvs/{cvId}/sections/{sectionId}`
+   - Retrieve a specific section by ID
+
+9. `PUT /cvs/{cvId}/sections/{sectionId}`
+   - Update an existing section
+   - Request body: Updated section details
+   - Can modify title, visibility, order
+
+10. `PATCH /cvs/{cvId}/sections/{sectionId}/order`
+    - Update section order
+    - Request body: New order index
+
+11. `DELETE /cvs/{cvId}/sections/{sectionId}`
+    - Delete a specific section
+
+## Section Content Endpoints
+12. `GET /cvs/{cvId}/sections/{sectionId}/contents`
+    - List all content items in a section
+    - Query parameters:
+      - `current` (filter ongoing items)
+      - `orderIndex` (sort order)
+
+13. `POST /cvs/{cvId}/sections/{sectionId}/contents`
+    - Create a new content item in a section
+    - Request body: SectionContent object
+    - Returns created content with ID
+
+14. `GET /cvs/{cvId}/sections/{sectionId}/contents/{contentId}`
+    - Retrieve a specific content item
+
+15. `PUT /cvs/{cvId}/sections/{sectionId}/contents/{contentId}`
+    - Update an existing content item
+    - Can modify content, dates, current status
+
+16. `PATCH /cvs/{cvId}/sections/{sectionId}/contents/{contentId}/order`
+    - Update content item order within section
+
+17. `DELETE /cvs/{cvId}/sections/{sectionId}/contents/{contentId}`
+    - Delete a specific content item
+
+## Template Endpoints
+18. `GET /templates`
+    - List all available templates
+    - Query parameters:
+      - `active` (filter active templates)
+      - `page`, `size`, `sort`
+
+19. `GET /templates/{templateId}`
+    - Retrieve a specific template details
+    - Includes layout and styling information
+
+20. `POST /cvs/{cvId}/apply-template/{templateId}`
+    - Apply a specific template to an existing CV
+    - Returns updated CV with new template configuration
+
+## Bulk Operations
+21. `POST /cvs/bulk-create`
+    - Create multiple CVs in one request
+    - Request body: Array of CV objects
+
+22. `POST /cvs/{cvId}/sections/bulk-create`
+    - Create multiple sections for a CV in one request
+    - Request body: Array of Section objects
+
+## Search and Advanced Queries
+23. `GET /cvs/search`
+    - Advanced search across CVs
+    - Query parameters:
+      - `title` (partial match)
+      - `languageCode`
+      - `createdAfter`
+      - `createdBefore`
+
+## Metadata and Stats
+24. `GET /cvs/stats`
+    - Retrieve aggregate statistics
+    - Number of CVs
+    - CVs by language
+    - CVs by status
