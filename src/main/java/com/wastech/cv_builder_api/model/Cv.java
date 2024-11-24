@@ -36,6 +36,9 @@ public class Cv {
     @Column(name = "language_code")
     private String languageCode;
 
+    @Column(name = "is_deleted")
+    private Boolean isDeleted;
+
     @Column(name = "created_at", updatable = false)
     @CreationTimestamp
     private LocalDateTime createdAt;
