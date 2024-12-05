@@ -25,7 +25,7 @@ public class SectionContent {
     private String contentType;
 
     @Column(name = "content", columnDefinition = "jsonb")
-    private String content; // Use PostgreSQL JSONB type
+    private String content;
 
     @Min(0)
     @Column(name = "order_index")
@@ -49,7 +49,7 @@ public class SectionContent {
     private LocalDateTime updatedAt;
 
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "section_id")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "section_id" , nullable = false)
     private Section section;
 }

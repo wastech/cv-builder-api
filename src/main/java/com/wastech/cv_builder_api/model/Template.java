@@ -28,10 +28,10 @@ public class Template {
     private String description;
 
     @Column(name = "default_styles", columnDefinition = "jsonb")
-    private String defaultStyles; // Use PostgreSQL JSONB type
+    private String defaultStyles;
 
     @Column(name = "layout_config", columnDefinition = "jsonb")
-    private String layoutConfig; // Use PostgreSQL JSONB type
+    private String layoutConfig;
 
     @Column(name = "active", columnDefinition = "boolean default true")
     private boolean active = true;
