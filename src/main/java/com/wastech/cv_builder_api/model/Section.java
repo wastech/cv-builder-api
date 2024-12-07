@@ -45,10 +45,10 @@ public class Section {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    @ManyToOne(fetch = FetchType.LAZY ,optional = false)
-    @JoinColumn(name = "cv_id")
-    private Cv cv;
-
-    @OneToMany(mappedBy = "section", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<SectionContent> contents;
+//    @ManyToOne(fetch = FetchType.LAZY ,optional = false)
+//    @JoinColumn(name = "cv_id")
+//    private CV cv;
+//
+//    @OneToMany(mappedBy = "section", cascade = CascadeType.ALL, orphanRemoval = true)
+//    private List<SectionContent> contents;
 }

@@ -43,7 +43,7 @@ public class Template {
     @Column(name = "updated_at")
     @UpdateTimestamp
     private LocalDateTime updatedAt;
-
-    @OneToMany(mappedBy = "template")
-    private List<Cv> cvs;
+//
+//    @OneToMany(mappedBy = "template")
+//    private List<CV> cvs;
 }

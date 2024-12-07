@@ -1,6 +1,6 @@
 package com.wastech.cv_builder_api.model;
 
-public enum CvStatus {
+public enum CVStatus {
 
     DRAFT,
     IN_PROGRESS,

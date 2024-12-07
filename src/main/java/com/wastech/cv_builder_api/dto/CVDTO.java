@@ -1,6 +1,6 @@
 package com.wastech.cv_builder_api.dto;
 
-import com.wastech.cv_builder_api.model.CvStatus;
+import com.wastech.cv_builder_api.model.CVStatus;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,7 +15,7 @@ import java.util.UUID;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class CvDto {
+public class CVDTO {
     private UUID id;
 
     @NotBlank(message = "CV title cannot be blank")
@@ -23,17 +23,17 @@ public class CvDto {
 
     private String summary;
 
-    private CvStatus status;
+    private CVStatus status;
 
     private String languageCode;
 
-    private Boolean isDeleted;
+    private Boolean isDeleted=false;
 
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
 
-    private List<SectionDto> sections;
-
-    private TemplateDto template;
+//    private List<SectionDto> sections;
+//
+//    private TemplateDto template;
 }

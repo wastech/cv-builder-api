@@ -33,7 +33,7 @@ public class SectionDto {
 
     private LocalDateTime updatedAt;
 
-    private UUID cvId;
+//    private UUID cvId;
 
-    private List<SectionContentDto> contents;
+//    private List<SectionContentDto> contents;
 }

@@ -30,6 +30,6 @@ public class TemplateDto {
 
     private LocalDateTime updatedAt;
 
-    private List<UUID> cvIds;
+//    private List<UUID> cvIds;
 
 }

@@ -33,5 +33,5 @@ public class SectionContentDto {
 
     private LocalDateTime updatedAt;
 
-    private UUID sectionId;
+//    private UUID sectionId;
 }
