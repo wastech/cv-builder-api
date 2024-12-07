@@ -9,6 +9,7 @@ import com.wastech.cv_builder_api.dto.CVStatisticsDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -20,6 +21,28 @@ public interface CVService {
      * @return Created CV
      */
     CVDTO createCV(CVDTO cVDTO);
+
+
+    /**
+     * Retrieve all CVs with advanced filtering, pagination, and sorting
+     * @param title Optional title filter
+     * @param languageCode Optional language code filter
+     * @param status Optional status filter
+     * @param createdAfter Optional creation date start filter
+     * @param createdBefore Optional creation date end filter
+     * @param isDeleted Optional deletion status filter
+     * @param pageable Pagination and sorting parameters
+     * @return Paginated and filtered list of CVs
+     */
+    Page<CV> getAllCVsWithFilters(
+        String title,
+        String languageCode,
+        String status,
+        LocalDateTime createdAfter,
+        LocalDateTime createdBefore,
+        Boolean isDeleted,
+        Pageable pageable
+    );
 
     /**
      * Update an existing CV
@@ -35,13 +58,7 @@ public interface CVService {
      */
     void deleteCV(UUID id);
 
-    /**
-     * Advanced search for CVs with multiple filtering options
-     * @param searchCriteria Search criteria
-     * @param pageable Pagination information
-     * @return Page of CVs matching the search criteria
-     */
-    Page<CV> searchCVs(CVSearchCriteria searchCriteria, Pageable pageable);
+
 
     /**
      * Retrieve a CV by its ID
@@ -50,19 +67,6 @@ public interface CVService {
      */
     Optional<CV> getCVById(UUID id);
 
-    /**
-     * Get CVs by status
-     * @param status CV status
-     * @return List of CVs with given status
-     */
-    List<CV> getCVsByStatus(CVStatus status);
-
-    /**
-     * Get CVs by language code
-     * @param languageCode Language code
-     * @return List of CVs in specified language
-     */
-    List<CV> getCVsByLanguage(String languageCode);
 
     /**
      * Get CV statistics
@@ -70,10 +74,5 @@ public interface CVService {
      */
     CVStatisticsDTO getCVStatistics();
 
-    /**
-     * Retrieve recently modified CVs
-     * @param hoursAgo Number of hours to look back
-     * @return List of recently modified CVs
-     */
-    List<CV> getRecentlyModifiedCVs(int hoursAgo);
+
 }

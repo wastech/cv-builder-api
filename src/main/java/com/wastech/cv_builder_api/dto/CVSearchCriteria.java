@@ -25,6 +25,8 @@ public class CVSearchCriteria {
     @NotBlank(message = "Status cannot be blank")
     private String status;
 
+    private Boolean isDeleted;
+
     private LocalDateTime createdAfter;
 
     private LocalDateTime createdBefore;
