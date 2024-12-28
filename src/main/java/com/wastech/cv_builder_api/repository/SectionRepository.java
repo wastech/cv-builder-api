@@ -12,13 +12,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface SectionRepository extends JpaRepository<Section, UUID> {
-//    @Query("SELECT s FROM Section s WHERE s.cv.id = :cvId " +
-//        "AND (:visible IS NULL OR s.visible = :visible) " +
-//        "AND (:type IS NULL OR s.type = :type)")
-//    Page<Section> findSectionsByCvId(
-//        @Param("cvId") UUID cvId,
-//        @Param("visible") Boolean visible,
-//        @Param("type") String type,
-//        Pageable pageable
-//    );
+    List<Section> findByCvId(UUID cvId);
+
+    @Query("SELECT CASE WHEN COUNT(s) > 0 THEN true ELSE false END FROM Section s WHERE s.cv.id = :cvId AND LOWER(s.title) = LOWER(:title)")
+    boolean existsByCvIdAndTitleIgnoreCase(@Param("cvId") UUID cvId, @Param("title") String title);
+
 }

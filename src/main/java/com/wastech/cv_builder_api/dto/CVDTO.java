@@ -33,7 +33,7 @@ public class CVDTO {
 
     private LocalDateTime updatedAt;
 
-//    private List<SectionDto> sections;
+    private UUID  cvId;
 //
 //    private TemplateDto template;
 }

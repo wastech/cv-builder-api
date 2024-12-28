@@ -1,24 +1,20 @@
 package com.wastech.cv_builder_api.dto;
 
-import com.wastech.cv_builder_api.model.CV;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
 
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class SectionDto {
-    private UUID id;
-
+public class SectionRequestDto {
     @NotBlank(message = "Section type cannot be blank")
     private String type;
 
@@ -30,11 +26,6 @@ public class SectionDto {
 
     private boolean visible = true;
 
-    private LocalDateTime createdAt;
-
-    private LocalDateTime updatedAt;
-
-    private UUID cvId;
-
-//    private List<SectionContentDto> contents;
+    @NotNull(message = "CV ID cannot be null")
+    private UUID cvId;  // ID of the CV this section belongs to
 }

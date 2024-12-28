@@ -51,9 +51,9 @@ public class CV {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-//    @OneToMany(mappedBy = "cv", cascade = CascadeType.ALL, orphanRemoval = true)
-//    private List<Section> sections;
-//
+    @OneToMany(mappedBy = "cv", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Section> sections;
+
 //    @ManyToOne
 //    @JoinColumn(name = "template_id")
 //    private Template template;
