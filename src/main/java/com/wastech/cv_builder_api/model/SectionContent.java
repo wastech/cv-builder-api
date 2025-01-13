@@ -1,10 +1,13 @@
 package com.wastech.cv_builder_api.model;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -15,6 +18,8 @@ import java.util.UUID;
 @Table(name = "section_content")
 @AllArgsConstructor
 @NoArgsConstructor
+@Getter
+@Setter
 public class SectionContent {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -25,7 +30,7 @@ public class SectionContent {
     private String contentType;
 
     @Column(name = "content", columnDefinition = "jsonb")
-    private String content;
+    private JsonNode content;
 
     @Min(0)
     @Column(name = "order_index")
@@ -48,8 +53,7 @@ public class SectionContent {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "section_id" , nullable = false)
+    @JoinColumn(name = "section_id", nullable = false)
     private Section section;
 }

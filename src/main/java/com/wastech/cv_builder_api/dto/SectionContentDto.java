@@ -1,5 +1,6 @@
 package com.wastech.cv_builder_api.dto;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -7,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.UUID;
 
 @Data
@@ -18,7 +20,7 @@ public class SectionContentDto {
     @NotNull(message = "Content type cannot be null")
     private String contentType;
 
-    private String content; // JSONB content
+    private JsonNode content;
 
     @Min(value = 0, message = "Order index must be non-negative")
     private int orderIndex;
@@ -33,5 +35,5 @@ public class SectionContentDto {
 
     private LocalDateTime updatedAt;
 
-//    private UUID sectionId;
+   private UUID sectionId;
 }

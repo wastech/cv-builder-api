@@ -36,5 +36,5 @@ public class SectionDto {
 
     private UUID cvId;
 
-//    private List<SectionContentDto> contents;
+ private List<SectionContentDto> contents;
 }
