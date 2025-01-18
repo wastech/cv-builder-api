@@ -1,5 +1,6 @@
 package com.wastech.cv_builder_api.dto;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -20,9 +21,9 @@ public class TemplateDto {
 
     private String description;
 
-    private String defaultStyles;
+    private JsonNode defaultStyles;
 
-    private String layoutConfig;
+    private JsonNode layoutConfig;
 
     private boolean active = true;
 
@@ -30,6 +31,5 @@ public class TemplateDto {
 
     private LocalDateTime updatedAt;
 
-//    private List<UUID> cvIds;
 
 }
