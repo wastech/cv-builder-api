@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -24,6 +25,7 @@ public class SectionContentServiceImpl implements SectionContentService {
 
     @Autowired
     private SectionRepository sectionRepository;
+
 
     /**
      * Convert SectionContent entity to DTO
@@ -71,20 +73,39 @@ public class SectionContentServiceImpl implements SectionContentService {
         SectionContent existingContent = sectionContentRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException("Section content not found"));
 
-        // Update fields but preserve the ID
-        BeanUtils.copyProperties(sectionContentDto, existingContent, "id", "createdAt", "section");
+        // Update the content type if provided
+        if (sectionContentDto.getContentType() != null) {
+            existingContent.setContentType(sectionContentDto.getContentType());
+        }
 
-        // Fixed: Check for sectionId not null and update section if provided
-        if (sectionContentDto.getSectionId() != null) {
+        // Update the section if sectionId is provided
+        if (sectionContentDto.getSectionId() != null &&
+            (existingContent.getSection() == null || !existingContent.getSection().getId().equals(sectionContentDto.getSectionId()))) {
             Section section = sectionRepository.findById(sectionContentDto.getSectionId())
                 .orElseThrow(() -> new EntityNotFoundException("Section not found"));
             existingContent.setSection(section);
         }
 
+        // Update other fields if provided
+        if (sectionContentDto.getContent() != null) {
+            existingContent.setContent(sectionContentDto.getContent());
+        }
+            existingContent.setOrderIndex(sectionContentDto.getOrderIndex());
+        if (sectionContentDto.getStartDate() != null) {
+            existingContent.setStartDate(sectionContentDto.getStartDate());
+        }
+        if (sectionContentDto.getEndDate() != null) {
+            existingContent.setEndDate(sectionContentDto.getEndDate());
+        }
+
+
+
+        // Update the updatedAt field
+        existingContent.setUpdatedAt(LocalDateTime.now());
+
         SectionContent updatedContent = sectionContentRepository.save(existingContent);
         return convertToDto(updatedContent);
     }
-
     @Override
     public SectionContentDto getSectionContentById(UUID id) {
         SectionContent content = sectionContentRepository.findById(id)

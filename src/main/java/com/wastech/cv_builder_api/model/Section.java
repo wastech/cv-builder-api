@@ -1,6 +1,7 @@
 package com.wastech.cv_builder_api.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -57,6 +58,6 @@ public class Section {
     @JoinColumn(name = "cv_id")
     private CV cv;
 
-//   @OneToMany(mappedBy = "section", cascade = CascadeType.ALL, orphanRemoval = true)
-//    private List<SectionContent> contents;
+    @OneToMany(mappedBy = "section", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<SectionContent> contents;
 }
