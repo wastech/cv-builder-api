@@ -20,7 +20,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-@Table(name = "template")
+@Table(name = "template", uniqueConstraints = @UniqueConstraint(columnNames = "name"))
 public class Template {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

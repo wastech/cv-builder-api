@@ -14,6 +14,7 @@ import java.util.UUID;
 public interface SectionRepository extends JpaRepository<Section, UUID> {
     List<Section> findByCvId(UUID cvId);
 
+
     @Query("SELECT CASE WHEN COUNT(s) > 0 THEN true ELSE false END FROM Section s WHERE s.cv.id = :cvId AND LOWER(s.title) = LOWER(:title)")
     boolean existsByCvIdAndTitleIgnoreCase(@Param("cvId") UUID cvId, @Param("title") String title);
 

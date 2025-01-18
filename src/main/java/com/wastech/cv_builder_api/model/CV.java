@@ -54,9 +54,9 @@ public class CV {
     @OneToMany(mappedBy = "cv", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Section> sections;
 
-//    @ManyToOne
-//    @JoinColumn(name = "template_id")
-//    private Template template;
+    @ManyToOne
+    @JoinColumn(name = "template_id")
+    private Template template;
 
 
 }
