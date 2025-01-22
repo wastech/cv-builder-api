@@ -34,6 +34,6 @@ public class CVDTO {
     private LocalDateTime updatedAt;
 
     private UUID  cvId;
-//
-//    private TemplateDto template;
+
+    private UUID templateId;
 }

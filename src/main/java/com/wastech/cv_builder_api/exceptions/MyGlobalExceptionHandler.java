@@ -53,15 +53,15 @@ public class MyGlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
     }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGlobalException(Exception ex, WebRequest request) {
-        ErrorResponse errorResponse = new ErrorResponse(
-            LocalDateTime.now(),
-            HttpStatus.INTERNAL_SERVER_ERROR.value(),
-            HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
-            ex.getMessage(),
-            request.getDescription(false)
-        );
-        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+//    @ExceptionHandler(Exception.class)
+//    public ResponseEntity<ErrorResponse> handleGlobalException(Exception ex, WebRequest request) {
+//        ErrorResponse errorResponse = new ErrorResponse(
+//            LocalDateTime.now(),
+//            HttpStatus.INTERNAL_SERVER_ERROR.value(),
+//            HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
+//            ex.getMessage(),
+//            request.getDescription(false)
+//        );
+//        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+//    }
 }

@@ -50,4 +50,6 @@ public interface CVRepository extends JpaRepository<CV, UUID>, JpaSpecificationE
     // Count CVs by Status
     @Query("SELECT c.status, COUNT(c) FROM CV c WHERE c.isDeleted = false GROUP BY c.status")
     List<Object[]> countCVsByStatus();
+
+    Optional<CV> findByTemplateId(UUID templateId);
 }

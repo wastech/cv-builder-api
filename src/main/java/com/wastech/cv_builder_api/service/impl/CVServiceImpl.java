@@ -4,9 +4,12 @@ import com.wastech.cv_builder_api.dto.CVDTO;
 import com.wastech.cv_builder_api.dto.CVSearchCriteria;
 import com.wastech.cv_builder_api.dto.CVStatisticsDTO;
 import com.wastech.cv_builder_api.exceptions.APIException;
+import com.wastech.cv_builder_api.exceptions.ResourceNotFoundException;
 import com.wastech.cv_builder_api.model.CV;
 import com.wastech.cv_builder_api.model.CVStatus;
+import com.wastech.cv_builder_api.model.Template;
 import com.wastech.cv_builder_api.repository.CVRepository;
+import com.wastech.cv_builder_api.repository.TemplateRepository;
 import com.wastech.cv_builder_api.service.CVService;
 import com.wastech.cv_builder_api.util.CVSpecification;
 import jakarta.transaction.Transactional;
@@ -33,14 +36,23 @@ public class CVServiceImpl implements CVService {
     @Autowired
     private final ModelMapper modelMapper;
 
+    @Autowired
+    private final TemplateRepository templateRepository;
+
     @Override
     @Transactional
     public CVDTO createCV(CVDTO cvDTO) {
 
-        // Check if a CV with the same title already exists
+//         Check if a CV with the same title already exists
         Optional<CV> existingCV = cvRepository.findByTitle(cvDTO.getTitle());
         if (existingCV.isPresent()) {
             throw new APIException("A CV with this " + cvDTO.getTitle() + " already exists.");
+        }
+
+        // Check if the template ID exists in the Template repository
+        Optional<Template> templateOptional = templateRepository.findById(cvDTO.getTemplateId());
+        if (templateOptional.isEmpty()) {
+            throw new ResourceNotFoundException("Template " , "cvDTO.getTemplateId() ", cvDTO.getTemplateId());
         }
 
         // Map DTO to entity

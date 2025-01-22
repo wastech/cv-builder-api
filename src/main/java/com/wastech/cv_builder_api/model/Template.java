@@ -1,5 +1,6 @@
 package com.wastech.cv_builder_api.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.persistence.*;
@@ -13,6 +14,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -52,7 +54,7 @@ public class Template {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    @JsonManagedReference
+    @JsonIgnore
     @OneToMany(mappedBy = "template", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<CV> cvs;
+    private List<CV> cvs = new ArrayList<>();
 }

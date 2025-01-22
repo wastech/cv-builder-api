@@ -11,5 +11,5 @@ public interface SectionService {
     SectionDto updateSection(UUID id, SectionDto sectionDto);
     void deleteSection(UUID id);
     SectionDto findSectionById(UUID id);
-    List<SectionDto> findAllSectionsByCvId(UUID cvId);
+    List<SectionDto> findAllSectionsByCvId(UUID id);
 }
