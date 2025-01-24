@@ -1,10 +1,11 @@
 package com.wastech.cv_builder_api.security.services;
 
+
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import com.wastech.cv_builder_api.model.User;
 import lombok.Data;
@@ -20,37 +21,39 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 public class UserDetailsImpl implements UserDetails {
     private static final long serialVersionUID = UUID.randomUUID().getMostSignificantBits();
     private UUID id;
-
     private String username;
-
     private String email;
 
     @JsonIgnore
     private String password;
 
+    private boolean is2faEnabled;
+
     private Collection<? extends GrantedAuthority> authorities;
 
     public UserDetailsImpl(UUID id, String username, String email, String password,
-                           Collection<? extends GrantedAuthority> authorities) {
+                           boolean is2faEnabled, Collection<? extends GrantedAuthority> authorities) {
         this.id = id;
         this.username = username;
         this.email = email;
         this.password = password;
+        this.is2faEnabled = is2faEnabled;
         this.authorities = authorities;
     }
 
     public static UserDetailsImpl build(User user) {
-        List<GrantedAuthority> authorities = user.getRoles().stream()
-            .map(role -> new SimpleGrantedAuthority(role.getRoleName().name()))
-            .collect(Collectors.toList());
+        GrantedAuthority authority = new SimpleGrantedAuthority(user.getRole().getRoleName().name());
 
         return new UserDetailsImpl(
             user.getUserId(),
             user.getUserName(),
             user.getEmail(),
             user.getPassword(),
-            authorities);
+            user.isTwoFactorEnabled(),
+            List.of(authority) // Wrapping the single authority in a list
+        );
     }
+
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -95,6 +98,10 @@ public class UserDetailsImpl implements UserDetails {
         return true;
     }
 
+    public boolean is2faEnabled() {
+        return is2faEnabled;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o)
@@ -104,5 +111,4 @@ public class UserDetailsImpl implements UserDetails {
         UserDetailsImpl user = (UserDetailsImpl) o;
         return Objects.equals(id, user.id);
     }
-
 }
