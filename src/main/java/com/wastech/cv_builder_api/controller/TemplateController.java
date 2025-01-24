@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/templates")
+@RequestMapping("/api/public/templates")
 public class TemplateController {
 
     @Autowired

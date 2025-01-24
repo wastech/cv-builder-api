@@ -12,21 +12,21 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/section-contents")
-@CrossOrigin(origins = "*")
+@RequestMapping("/api/public/section-contents")
+//@CrossOrigin(origins = "*")
 public class SectionContentController {
 
     @Autowired
     private SectionContentService sectionContentService;
 
-    @PostMapping
+    @PostMapping("/public/section-contents")
     public ResponseEntity<SectionContentDto> createSectionContent(
         @Valid @RequestBody SectionContentDto sectionContentDto) {
         SectionContentDto createdContent = sectionContentService.createSectionContent(sectionContentDto);
         return new ResponseEntity<>(createdContent, HttpStatus.CREATED);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/public/section-contents/{id}")
     public ResponseEntity<SectionContentDto> updateSectionContent(
         @PathVariable UUID id,
         @Valid @RequestBody SectionContentDto sectionContentDto) {
@@ -34,32 +34,32 @@ public class SectionContentController {
         return ResponseEntity.ok(updatedContent);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/public/section-contents/{id}")
     public ResponseEntity<SectionContentDto> getSectionContent(@PathVariable UUID id) {
         SectionContentDto content = sectionContentService.getSectionContentById(id);
         return ResponseEntity.ok(content);
     }
 
-    @GetMapping
+    @GetMapping("/public/section-contents")
     public ResponseEntity<List<SectionContentDto>> getAllSectionContents() {
         List<SectionContentDto> contents = sectionContentService.getAllSectionContents();
         return ResponseEntity.ok(contents);
     }
 
-    @GetMapping("/section/{sectionId}")
+    @GetMapping("/public/section-contents/section/{sectionId}")
     public ResponseEntity<List<SectionContentDto>> getSectionContentsBySection(
         @PathVariable UUID sectionId) {
         List<SectionContentDto> contents = sectionContentService.getSectionContentsBySection(sectionId);
         return ResponseEntity.ok(contents);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/public/section-contents/{id}")
     public ResponseEntity<Void> deleteSectionContent(@PathVariable UUID id) {
         sectionContentService.deleteSectionContent(id);
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/section/{sectionId}")
+    @DeleteMapping("/public/section-contents/section/{sectionId}")
     public ResponseEntity<Void> deleteAllSectionContentsBySection(
         @PathVariable UUID sectionId) {
         sectionContentService.deleteAllSectionContentsBySection(sectionId);

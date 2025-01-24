@@ -14,33 +14,33 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/sections")
+@RequestMapping("/api")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
+//@CrossOrigin(origins = "*")
 public class SectionController {
 
     @Autowired
     private final SectionService sectionService;
 
-    @PostMapping
+    @PostMapping("/public/sections")
     public ResponseEntity<SectionDto> createSection(@Valid @RequestBody SectionRequestDto sectionRequestDto) {
         SectionDto createdSection = sectionService.createSection(sectionRequestDto);
         return new ResponseEntity<>(createdSection, HttpStatus.CREATED);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/public/sections/{id}")
     public ResponseEntity<SectionDto> getSectionById(@PathVariable UUID id) {
         SectionDto section = sectionService.findSectionById(id);
         return ResponseEntity.ok(section);
     }
 
-    @GetMapping("/cv/{cvId}")
+    @GetMapping("/public/sections/cv/{cvId}")
     public ResponseEntity<List<SectionDto>> getAllSectionsByCvId(@PathVariable UUID cvId) {
         List<SectionDto> sections = sectionService.findAllSectionsByCvId(cvId);
         return ResponseEntity.ok(sections);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/public/sections/{id}")
     public ResponseEntity<SectionDto> updateSection(
         @PathVariable UUID id,
         @Valid @RequestBody SectionDto sectionDto) {
@@ -48,7 +48,7 @@ public class SectionController {
         return ResponseEntity.ok(updatedSection);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/public/sections/{id}")
     public ResponseEntity<Void> deleteSection(@PathVariable UUID id) {
         sectionService.deleteSection(id);
         return ResponseEntity.noContent().build();

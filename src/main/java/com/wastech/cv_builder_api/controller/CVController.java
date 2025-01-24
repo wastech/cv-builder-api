@@ -16,6 +16,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -24,21 +25,23 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/cv")
+@RequestMapping("/api")
 @RequiredArgsConstructor
 public class CVController {
 
     @Autowired
     private final CVService cvService;
 
-    @PostMapping
+    // This endpoint is restricted to users with the 'ADMIN' role
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/admin/cv")
     public ResponseEntity<CVDTO> createCV(@Valid @RequestBody CVDTO cvCreateDTO) {
         CVDTO createdCVDTO = cvService.createCV(cvCreateDTO);
         return new ResponseEntity<>(createdCVDTO, HttpStatus.CREATED);
     }
 
 
-    @GetMapping
+    @GetMapping("/public/cv")
     public ResponseEntity<Page<CV>> getAllCVs(
         @RequestParam(required = false) String title,
         @RequestParam(required = false) String languageCode,
@@ -60,14 +63,15 @@ public class CVController {
         return ResponseEntity.ok(cvPage);
     }
 
-    @GetMapping("/statistics")
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/public/cv/statistics")
     public ResponseEntity<CVStatisticsDTO> getCVStatistics() {
         CVStatisticsDTO statistics = cvService.getCVStatistics();
         return ResponseEntity.ok(statistics);
     }
 
 
-    @PutMapping("/{id}")
+    @PutMapping("/public/cv/{id}")
     public ResponseEntity<CV> updateCV(
         @PathVariable UUID id,
         @RequestBody CV updatedCV
@@ -76,14 +80,15 @@ public class CVController {
         return ResponseEntity.ok(updated);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/public/cv/{id}")
     public ResponseEntity<CV> getCVById(@PathVariable UUID id) {
         return cvService.getCVById(id)
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
     }
 
-    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/admin/cv/{id}")
     public ResponseEntity<Map<String, Boolean>> deleteCV(@PathVariable UUID id) {
         cvService.deleteCV(id);
         Map<String, Boolean> response = new HashMap<>();
