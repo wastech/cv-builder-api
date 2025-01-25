@@ -157,6 +157,7 @@ public class UserServiceImpl implements UserService {
         passwordResetTokenRepository.save(resetToken);
 
         String resetUrl = frontendUrl + "/reset-password?token=" + token;
+        System.out.print("resetUrl"+ resetUrl);
         // Send email to user
 //        emailService.sendPasswordResetEmail(user.getEmail(), resetUrl);
     }

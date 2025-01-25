@@ -60,8 +60,6 @@ public class AuthController {
     @Autowired
     AuthUtil authUtil;
 
-//    @Autowired
-//    TotpService totpService;
 
     @PostMapping("/public/signin")
     public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
@@ -81,10 +79,7 @@ public class AuthController {
 
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
-        // Extract the username from the userDetails object
-        String username = userDetails.getUsername();
-
-        String jwtToken = jwtUtils.generateTokenFromUsername(username);
+        String jwtToken = jwtUtils.generateTokenFromUsername(userDetails);
 
         // Collect roles from the UserDetails
         List<String> roles = userDetails.getAuthorities().stream()
@@ -261,12 +256,6 @@ public class AuthController {
 //        }
 //    }
 
-    @PostMapping("/public/signout")
-    public ResponseEntity<?> signoutUser(){
-        ResponseCookie cookie = jwtUtils.getCleanJwtCookie();
-        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE,
-                cookie.toString())
-            .body(new MessageResponse("You've been signed out!"));
-    }
+
 
 }
