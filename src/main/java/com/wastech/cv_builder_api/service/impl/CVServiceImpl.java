@@ -8,6 +8,7 @@ import com.wastech.cv_builder_api.exceptions.ResourceNotFoundException;
 import com.wastech.cv_builder_api.model.CV;
 import com.wastech.cv_builder_api.model.CVStatus;
 import com.wastech.cv_builder_api.model.Template;
+import com.wastech.cv_builder_api.model.User;
 import com.wastech.cv_builder_api.repository.CVRepository;
 import com.wastech.cv_builder_api.repository.TemplateRepository;
 import com.wastech.cv_builder_api.service.CVService;
@@ -41,9 +42,8 @@ public class CVServiceImpl implements CVService {
 
     @Override
     @Transactional
-    public CVDTO createCV(CVDTO cvDTO) {
-
-//         Check if a CV with the same title already exists
+    public CVDTO createCV(CVDTO cvDTO, User user) {
+        // Check if a CV with the same title already exists
         Optional<CV> existingCV = cvRepository.findByTitle(cvDTO.getTitle());
         if (existingCV.isPresent()) {
             throw new APIException("A CV with this " + cvDTO.getTitle() + " already exists.");
@@ -52,19 +52,22 @@ public class CVServiceImpl implements CVService {
         // Check if the template ID exists in the Template repository
         Optional<Template> templateOptional = templateRepository.findById(cvDTO.getTemplateId());
         if (templateOptional.isEmpty()) {
-            throw new ResourceNotFoundException("Template " , "cvDTO.getTemplateId() ", cvDTO.getTemplateId());
+            throw new ResourceNotFoundException("Template", "cvDTO.getTemplateId()", cvDTO.getTemplateId());
         }
 
         // Map DTO to entity
         CV cv = modelMapper.map(cvDTO, CV.class);
 
-        // Set default status if not provided
-        if (cv.getStatus() == null) {
-            cv.setStatus(CVStatus.DRAFT);
-        }
-
+        // Set the user and default values
+        cv.setUser(user);
+        cv.setStatus(cv.getStatus() == null ? CVStatus.DRAFT : cv.getStatus());
         cv.setCreatedAt(LocalDateTime.now());
         cv.setUpdatedAt(LocalDateTime.now());
+
+        // Update user's CVs list
+        List<CV> cvList = user.getCvs();
+        cvList.add(cv);
+        user.setCvs(cvList);
 
         // Save the entity
         CV savedCV = cvRepository.save(cv);

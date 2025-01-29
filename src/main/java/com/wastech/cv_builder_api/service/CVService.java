@@ -6,6 +6,7 @@ import com.wastech.cv_builder_api.model.CVStatus;
 import com.wastech.cv_builder_api.dto.CVSearchCriteria;
 import com.wastech.cv_builder_api.dto.CVStatisticsDTO;
 
+import com.wastech.cv_builder_api.model.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -20,7 +21,7 @@ public interface CVService {
      * @param cVDTO CVDTO to be created
      * @return Created CV
      */
-    CVDTO createCV(CVDTO cVDTO);
+    CVDTO createCV(CVDTO cVDTO, User user);
 
 
     /**

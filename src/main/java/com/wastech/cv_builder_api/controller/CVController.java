@@ -4,8 +4,10 @@ import com.wastech.cv_builder_api.dto.CVDTO;
 import com.wastech.cv_builder_api.dto.CVSearchCriteria;
 import com.wastech.cv_builder_api.dto.CVStatisticsDTO;
 import com.wastech.cv_builder_api.model.CV;
+import com.wastech.cv_builder_api.model.User;
 import com.wastech.cv_builder_api.service.CVService;
 
+import com.wastech.cv_builder_api.util.AuthUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,11 +34,16 @@ public class CVController {
     @Autowired
     private final CVService cvService;
 
+
+    @Autowired
+    AuthUtil authUtil;
+
     // This endpoint is restricted to users with the 'ADMIN' role
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/admin/cv")
     public ResponseEntity<CVDTO> createCV(@Valid @RequestBody CVDTO cvCreateDTO) {
-        CVDTO createdCVDTO = cvService.createCV(cvCreateDTO);
+        User user = authUtil.loggedInUser();
+        CVDTO createdCVDTO = cvService.createCV(cvCreateDTO,user);
         return new ResponseEntity<>(createdCVDTO, HttpStatus.CREATED);
     }
 
