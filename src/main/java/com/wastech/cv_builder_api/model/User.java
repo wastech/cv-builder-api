@@ -12,7 +12,8 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -70,6 +71,16 @@ public class User {
         this.email = email;
     }
 
+//    @ToString.Exclude
+//    @OneToMany(mappedBy = "user",
+//        cascade = {CascadeType.PERSIST, CascadeType.MERGE},
+//        orphanRemoval = true)
+//    private Set<CV> cvs;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    @ToString.Exclude
+    private List<CV> cvs = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE})
     @JoinColumn(name = "role_id", referencedColumnName = "role_id")

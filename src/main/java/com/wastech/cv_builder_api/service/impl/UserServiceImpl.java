@@ -9,6 +9,7 @@ import com.wastech.cv_builder_api.repository.PasswordResetTokenRepository;
 import com.wastech.cv_builder_api.repository.RoleRepository;
 import com.wastech.cv_builder_api.repository.UserRepository;
 import com.wastech.cv_builder_api.service.UserService;
+//import com.wastech.cv_builder_api.util.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -159,7 +160,7 @@ public class UserServiceImpl implements UserService {
         String resetUrl = frontendUrl + "/reset-password?token=" + token;
         System.out.print("resetUrl"+ resetUrl);
         // Send email to user
-//        emailService.sendPasswordResetEmail(user.getEmail(), resetUrl);
+//      emailService.sendPasswordResetEmail(user.getEmail(), resetUrl);
     }
 
 

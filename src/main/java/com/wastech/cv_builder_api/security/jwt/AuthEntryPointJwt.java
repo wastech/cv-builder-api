@@ -62,3 +62,10 @@ public class AuthEntryPointJwt implements AuthenticationEntryPoint {
     }
 
 }
+
+
+//    @ToString.Exclude
+//    @OneToMany(mappedBy = "user",
+//        cascade = {CascadeType.PERSIST, CascadeType.MERGE},
+//        orphanRemoval = true)
+//    private Set<CV> cvs;
