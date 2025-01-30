@@ -1,7 +1,9 @@
 package com.wastech.cv_builder_api.repository;
 
+import com.wastech.cv_builder_api.dto.CVDTO;
 import com.wastech.cv_builder_api.model.CV;
 import com.wastech.cv_builder_api.model.CVStatus;
+import com.wastech.cv_builder_api.model.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -18,27 +20,12 @@ import java.util.UUID;
 public interface CVRepository extends JpaRepository<CV, UUID>, JpaSpecificationExecutor<CV> {
 
     Page<CV> findAll(Specification<CV> spec, Pageable pageable);
-    @Query("SELECT c FROM CV c WHERE " +
-        "(:title IS NULL OR LOWER(c.title) LIKE LOWER(CONCAT('%', :title, '%'))) AND " +
-        "(:languageCode IS NULL OR c.languageCode = :languageCode) AND " +
-        "(:status IS NULL OR c.status = :status) AND " +
-        "(:createdAfter IS NULL OR c.createdAt >= :createdAfter) AND " +
-        "(:createdBefore IS NULL OR c.createdAt <= :createdBefore) AND " +
-        "(:isDeleted IS NULL OR c.isDeleted = :isDeleted)")
-    Page<CV> cvs(
-        @Param("title") String title,
-        @Param("languageCode") String languageCode,
-        @Param("status") String status,
-        @Param("createdAfter") LocalDateTime createdAfter,
-        @Param("createdBefore") LocalDateTime createdBefore,
-        @Param("isDeleted") Boolean isDeleted,
-        Pageable pageable);
 
+//    List<CV> findByUserId(UUID userId);
     @Query("SELECT COUNT(c) FROM CV c WHERE c.isDeleted = false")
     long countActiveCvs();
 
     Optional<CV> findByTitle(String title);
-
 
     // Count total active (non-deleted) CVs
     long countByIsDeletedFalse();
@@ -52,4 +39,9 @@ public interface CVRepository extends JpaRepository<CV, UUID>, JpaSpecificationE
     List<Object[]> countCVsByStatus();
 
     Optional<CV> findByTemplateId(UUID templateId);
+
+    List<CV> findByUserOrderByCreatedAtDesc(User user);
+
+    Page<CV> findByUserAndIsDeletedFalseOrderByCreatedAtDesc(User user, Pageable pageable);
+    List<CVDTO> getCVsByUser(User user);
 }

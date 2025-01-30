@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -74,6 +76,15 @@ public class CVServiceImpl implements CVService {
 
         // Map saved entity back to DTO
         return modelMapper.map(savedCV, CVDTO.class);
+    }
+
+
+    @Override
+    @Transactional()
+    public Page<CVDTO> getUserCVs(User user, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<CV> cvPage = cvRepository.findByUserAndIsDeletedFalseOrderByCreatedAtDesc(user, pageable);
+        return cvPage.map(cv -> modelMapper.map(cv, CVDTO.class));
     }
 
     @Override

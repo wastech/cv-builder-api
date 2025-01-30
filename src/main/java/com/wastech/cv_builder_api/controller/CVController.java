@@ -19,10 +19,12 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -39,14 +41,26 @@ public class CVController {
     AuthUtil authUtil;
 
     // This endpoint is restricted to users with the 'ADMIN' role
-    @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/admin/cv")
     public ResponseEntity<CVDTO> createCV(@Valid @RequestBody CVDTO cvCreateDTO) {
+        System.out.println("cvCreateDTO" + cvCreateDTO);
+
         User user = authUtil.loggedInUser();
+        System.out.println("user" + user);
         CVDTO createdCVDTO = cvService.createCV(cvCreateDTO,user);
         return new ResponseEntity<>(createdCVDTO, HttpStatus.CREATED);
     }
 
+    @GetMapping("/user/cvs")
+    public ResponseEntity<Page<CVDTO>> getUserCVs(
+        @RequestParam(value = "page", defaultValue = "0") int page,
+        @RequestParam(value = "size", defaultValue = "10") int size) {
+        User user = authUtil.loggedInUser();
+
+        Page<CVDTO> cvs = cvService.getUserCVs(user, page, size);
+        return ResponseEntity.ok(cvs);
+    }
 
     @GetMapping("/public/cv")
     public ResponseEntity<Page<CV>> getAllCVs(

@@ -24,6 +24,8 @@ public interface CVService {
     CVDTO createCV(CVDTO cVDTO, User user);
 
 
+    Page<CVDTO> getUserCVs(User user, int page, int size);
+
     /**
      * Retrieve all CVs with advanced filtering, pagination, and sorting
      * @param title Optional title filter
