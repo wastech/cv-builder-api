@@ -1,6 +1,5 @@
 package com.wastech.cv_builder_api.security;
 
-
 import com.wastech.cv_builder_api.model.AppRole;
 import com.wastech.cv_builder_api.model.Role;
 import com.wastech.cv_builder_api.model.User;
@@ -18,11 +17,11 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
 import java.time.LocalDate;
 
@@ -37,10 +36,6 @@ public class WebSecurityConfig {
     @Autowired
     private AuthEntryPointJwt unauthorizedHandler;
 
-//    @Autowired
-//    @Lazy
-//    OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
-
     @Bean
     public AuthTokenFilter authenticationJwtTokenFilter() {
         return new AuthTokenFilter();
@@ -48,34 +43,29 @@ public class WebSecurityConfig {
 
     @Bean
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf(csrf ->
-            csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .ignoringRequestMatchers("/api/auth/public/**", "/v3/api-docs/**","/swagger-ui/**")
-        );
-        //http.csrf(AbstractHttpConfigurer::disable);
-        http.authorizeHttpRequests((requests)
-            -> requests
-            .requestMatchers("/api/admin/**").hasRole("ADMIN")
-            .requestMatchers("/api/csrf-token").permitAll()
-            .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/swagger-ui.html").permitAll()
-            .requestMatchers("/api/auth/public/**").permitAll()
-            .requestMatchers("/api/public/**").permitAll()
-
-            .requestMatchers("/oauth2/**").permitAll()
-            .anyRequest().authenticated());
-//            .oauth2Login(oauth2 -> {
-//                oauth2.successHandler(oAuth2LoginSuccessHandler);
-//            });
-        http.exceptionHandling(exception
-            -> exception.authenticationEntryPoint(unauthorizedHandler));
-        http.addFilterBefore(authenticationJwtTokenFilter(),
-            UsernamePasswordAuthenticationFilter.class);
-        http.formLogin(withDefaults());
-        http.httpBasic(withDefaults());
+        http.csrf(csrf -> csrf.disable()) // CSRF protection disabled
+            .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests((requests) -> requests
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                .requestMatchers("/api/csrf-token").permitAll()
+                .requestMatchers("/swagger-ui/**",
+                    "/v3/api-docs/**",
+                    "/v3/api-docs.yaml",
+                    "/swagger-ui.html",
+                    "/webjars/**",
+                    "/swagger-resources/**",
+                    "/configuration/**").permitAll()
+                .requestMatchers("/api/auth/public/**").permitAll()
+                .requestMatchers("/api/public/**").permitAll()
+                .requestMatchers("/oauth2/**").permitAll()
+                .anyRequest().authenticated()
+            )
+            .addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class)
+            .formLogin(withDefaults())
+            .httpBasic(withDefaults());
         return http.build();
     }
-
-
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
@@ -89,16 +79,14 @@ public class WebSecurityConfig {
 
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
-        return web -> web.ignoring().requestMatchers(
-            "/v3/api-docs",
-            "/v3/api-docs/**",
+        return (web -> web.ignoring().requestMatchers("/v3/api-docs",
             "/configuration/ui",
             "/swagger-resources/**",
             "/configuration/security",
             "/swagger-ui.html",
-            "/webjars/**",
-            "/swagger-ui/**");
+            "/webjars/**"));
     }
+
     @Bean
     public CommandLineRunner initData(RoleRepository roleRepository,
                                       UserRepository userRepository,
@@ -113,7 +101,7 @@ public class WebSecurityConfig {
             if (!userRepository.existsByUserName("user1")) {
                 User user1 = new User("user1", "user1@example.com",
                     passwordEncoder.encode("password1"));
-                user1.setAccountNonLocked(false);
+                user1.setAccountNonLocked(true);
                 user1.setAccountNonExpired(true);
                 user1.setCredentialsNonExpired(true);
                 user1.setEnabled(true);

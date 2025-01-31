@@ -44,10 +44,9 @@ public class CVController {
   @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/admin/cv")
     public ResponseEntity<CVDTO> createCV(@Valid @RequestBody CVDTO cvCreateDTO) {
-        System.out.println("cvCreateDTO" + cvCreateDTO);
 
         User user = authUtil.loggedInUser();
-        System.out.println("user" + user);
+        System.out.print("kkkkk"+ user);
         CVDTO createdCVDTO = cvService.createCV(cvCreateDTO,user);
         return new ResponseEntity<>(createdCVDTO, HttpStatus.CREATED);
     }
