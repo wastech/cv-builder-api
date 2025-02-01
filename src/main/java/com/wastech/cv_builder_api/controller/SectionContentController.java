@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/public/section-contents")
+@RequestMapping("/api")
 //@CrossOrigin(origins = "*")
 public class SectionContentController {
 

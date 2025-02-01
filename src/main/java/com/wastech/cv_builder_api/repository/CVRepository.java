@@ -21,7 +21,6 @@ public interface CVRepository extends JpaRepository<CV, UUID>, JpaSpecificationE
 
     Page<CV> findAll(Specification<CV> spec, Pageable pageable);
 
-//    List<CV> findByUserId(UUID userId);
     @Query("SELECT COUNT(c) FROM CV c WHERE c.isDeleted = false")
     long countActiveCvs();
 
