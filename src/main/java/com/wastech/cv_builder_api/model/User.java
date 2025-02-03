@@ -73,12 +73,6 @@ public class User {
         this.email = email;
     }
 
-//    @ToString.Exclude
-//    @OneToMany(mappedBy = "user",
-//        cascade = {CascadeType.PERSIST, CascadeType.MERGE},
-//        orphanRemoval = true)
-//    private Set<CV> cvs;
-
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     @ToString.Exclude
