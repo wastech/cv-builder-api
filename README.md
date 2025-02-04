@@ -1,8 +1,46 @@
 
 # CV/Resume Generation App
+## Overview
+This project is a CV Builder API built using Java Spring Boot and JPA Hibernate. The system allows users to create and manage their CVs, including sections and content within those sections. The project is designed to be scalable and flexible, allowing for customization through templates.
 
-A feature-rich application that allows users to create, customize, and download professional CVs and resumes.
+## Technologies Used
+- **Java Spring Boot**: For building the RESTful API.
+- **JPA Hibernate**: For ORM (Object-Relational Mapping) and database interactions.
+- **PostgreSQL**: For the database to store user, CV, section, section content, and template data.
+- **Spring Security**: For securing the application with authentication and authorization mechanisms.
 
+## Getting Started
+ ### Prerequisites
+ - Java Development Kit (JDK) 17 or higher.
+ - Maven 3.8.6 or higher.
+ - PostgreSQL database.
+# Setup Instructions
+
+## Prerequisites
+Ensure you have the following installed:
+- [Java 17+](https://adoptopenjdk.net/)
+- [Maven](https://maven.apache.org/download.cgi)
+- [PostgreSQL](https://www.postgresql.org/download/)
+- [Git](https://git-scm.com/downloads)
+
+#### 1. Clone the Repository
+```sh
+git clone https://github.com/wastech/cv-builder-api.git
+cd cv-builder-api
+```
+#### Configure the Database:
+
+Update the ```application.properties``` or ```application.yml```   file with your PostgreSQL database credentials.
+
+#### Build the Project:
+```sh
+mvn clean install
+```
+#### Run the Application:
+```sh
+
+mvn spring-boot:run
+```
 ## Key Features
 
 ### 1. User Profile Management
@@ -48,114 +86,28 @@ A feature-rich application that allows users to create, customize, and download 
 
 With these features, the app offers a comprehensive and intuitive experience, allowing users to create high-quality, professional CVs tailored to their needs.
 
+## Maven Dependencies
+ - Spring Boot Starter
+ - Spring Boot Starter Data JDBC
+ - Spring Boot Starter Data JPA
+ - Spring Boot Starter Test
+ - Mockito Core
+ - Spring Boot Starter Validation
+ - Spring Boot Starter Web
+ - Cloudinary HTTP 44
+ - PostgreSQL
+ - Lombok
+ - ModelMapper
+ - Spring Boot Starter Security
+ - SpringDoc OpenAPI Starter WebMVC UI
+ - JJWT API
+ - Spring Boot Starter Mail
+ - JJWT Implementation
+ - JJWT Jackson
 
-# CV Management RESTful API Endpoints
 
-## CV Endpoints
-1. `GET /cvs`
-   - List all CVs
-   - Query parameters: 
-     - `page` (pagination)
-     - `size` (page size)
-     - `sort` (sorting field)
-     - `status` (filter by CV status)
-     - `language` (filter by language)
+## Swagger
 
-2. `POST /cvs`
-   - Create a new CV
-   - Request body: CV object
-   - Returns created CV with ID
+```http://localhost:8081/swagger-ui/index.html```
 
-3. `GET /cvs/{cvId}`
-   - Retrieve a specific CV by ID
-   - Includes full CV details with sections
 
-4. `PUT /cvs/{cvId}`
-   - Update an existing CV
-   - Request body: Updated CV details
-
-5. `DELETE /cvs/{cvId}`
-   - Delete a specific CV
-
-## Section Endpoints
-6. `GET /cvs/{cvId}/sections`
-   - List all sections for a specific CV
-   - Query parameters:
-     - `visible` (filter by visibility)
-     - `type` (filter by section type)
-
-7. `POST /cvs/{cvId}/sections`
-   - Create a new section for a specific CV
-   - Request body: Section object
-   - Returns created section with ID
-
-8. `GET /cvs/{cvId}/sections/{sectionId}`
-   - Retrieve a specific section by ID
-
-9. `PUT /cvs/{cvId}/sections/{sectionId}`
-   - Update an existing section
-   - Request body: Updated section details
-   - Can modify title, visibility, order
-
-10. `PATCH /cvs/{cvId}/sections/{sectionId}/order`
-    - Update section order
-    - Request body: New order index
-
-11. `DELETE /cvs/{cvId}/sections/{sectionId}`
-    - Delete a specific section
-
-## Section Content Endpoints
-12. `GET /cvs/{cvId}/sections/{sectionId}/contents`
-    - List all content items in a section
-    - Query parameters:
-      - `current` (filter ongoing items)
-      - `orderIndex` (sort order)
-
-13. `POST /cvs/{cvId}/sections/{sectionId}/contents`
-    - Create a new content item in a section
-    - Request body: SectionContent object
-    - Returns created content with ID
-
-14. `GET /cvs/{cvId}/sections/{sectionId}/contents/{contentId}`
-    - Retrieve a specific content item
-
-15. `PUT /cvs/{cvId}/sections/{sectionId}/contents/{contentId}`
-    - Update an existing content item
-    - Can modify content, dates, current status
-
-16. `PATCH /cvs/{cvId}/sections/{sectionId}/contents/{contentId}/order`
-    - Update content item order within section
-
-17. `DELETE /cvs/{cvId}/sections/{sectionId}/contents/{contentId}`
-    - Delete a specific content item
-
-## Template Endpoints
-18. `GET /templates`
-    - List all available templates
-    - Query parameters:
-      - `active` (filter active templates)
-      - `page`, `size`, `sort`
-
-19. `GET /templates/{templateId}`
-    - Retrieve a specific template details
-    - Includes layout and styling information
-
-20. `POST /cvs/{cvId}/apply-template/{templateId}`
-    - Apply a specific template to an existing CV
-    - Returns updated CV with new template configuration
-
-## Search and Advanced Queries
-23. `GET /cvs/search`
-    - Advanced search across CVs
-    - Query parameters:
-      - `title` (partial match)
-      - `languageCode`
-      - `createdAfter`
-      - `createdBefore`
-
-## Metadata and Stats
-24. `GET /cvs/stats`
-    - Retrieve aggregate statistics
-    - Number of CVs
-    - CVs by language
-    - CVs by status
