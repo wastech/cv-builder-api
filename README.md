@@ -3,6 +3,9 @@
 ## Overview
 This project is a CV Builder API built using Java Spring Boot and JPA Hibernate. The system allows users to create and manage their CVs, including sections and content within those sections. The project is designed to be scalable and flexible, allowing for customization through templates.
 
+## CV Management System Database Schema
+![Image](https://github.com/user-attachments/assets/9714aa85-6623-470f-8673-2e493ef8921c)
+
 ## Technologies Used
 - **Java Spring Boot**: For building the RESTful API.
 - **JPA Hibernate**: For ORM (Object-Relational Mapping) and database interactions.
