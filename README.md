@@ -69,20 +69,20 @@ mvn spring-boot:run
 - **Visual Elements**: Add or remove borders, dividers, or icons.
 
 
-### 5. Download and Export Options
+### 4. Download and Export Options
 - **PDF Export**: Generate and download CVs/resumes as PDF files.
 - **File Naming**: Customize file names based on template, job title, etc.
 - **Printable Versions**: Ensure PDFs are print-ready.
 
-### 6. Saving and Storage
+### 5. Saving and Storage
 - **Save Drafts**: Allow users to save drafts for later editing.
 - **Cloud Storage**: Securely store user data and drafts.
 
 
-### 9. Analytics and Insights
+### 6. Analytics and Insights
 - **Views and Engagement Metrics**: Track views of shared links.
 
-### 11. Security and Privacy
+### 7. Security and Privacy
 - **Data Encryption**: Ensure all user data is securely encrypted.
 - **GDPR Compliance**: Provide data export or deletion options to meet privacy regulations.
 - **User Authentication**: Secure login options, potentially with two-factor authentication.
