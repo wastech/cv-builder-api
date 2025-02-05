@@ -40,7 +40,6 @@ public class CVController {
     @Autowired
     AuthUtil authUtil;
 
-    // This endpoint is restricted to users with the 'ADMIN' role
   @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/admin/cv")
     public ResponseEntity<CVDTO> createCV(@Valid @RequestBody CVDTO cvCreateDTO) {
