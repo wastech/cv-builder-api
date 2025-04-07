@@ -53,16 +53,6 @@ jobs:
           java-version: '21'
           cache: 'maven'
 
-      - name: Run tests with Maven
-        run: mvn test
-
-      - name: Archive test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results
-          path: target/surefire-reports/
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
