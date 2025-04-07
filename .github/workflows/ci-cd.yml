@@ -12,17 +12,22 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    env:
+      POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+      POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+
     services:
       postgres:
         image: postgres:13
         ports:
           - 5432:5432
         env:
-          POSTGRES_DB: ${{POSTGRES_DB }}
-          POSTGRES_USER: ${{ POSTGRES_USER }}
-          POSTGRES_PASSWORD: ${{ POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
         options: >-
-          --health-cmd "pg_isready -U ${{ POSTGRES_USER }} -d ${{ POSTGRES_DB }}"
+          --health-cmd "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -45,7 +50,7 @@ jobs:
       - name: Build and tag Docker image
         run: |
           docker buildx build --cache-from=type=local,src=/tmp/.buildx-cache --cache-to=type=local,dest=/tmp/.buildx-cache --tag cv-builder-api:latest .
-          docker tag cv-builder-api:latest ${{ DOCKER_USERNAME }}/cv-builder-api:latest
+          docker tag cv-builder-api:latest ${{ secrets.DOCKER_USERNAME }}/cv-builder-api:latest
 
       - name: Run Docker Compose
         run: docker-compose up -d
@@ -64,6 +69,12 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
 
+    env:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -74,18 +85,18 @@ jobs:
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
-          username: ${{ DOCKER_USERNAME }}
-          password: ${{ DOCKER_PASSWORD }}
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build and push Docker image
         run: |
-          docker buildx build --tag ${{ DOCKER_USERNAME }}/cv-builder-api:latest --push .
+          docker buildx build --tag ${{ secrets.DOCKER_USERNAME }}/cv-builder-api:latest --push .
 
       - name: Deploy to server
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ DEPLOY_USER }}@${{ DEPLOY_HOST }} << 'EOF'
-          docker pull ${{ DOCKER_USERNAME }}/cv-builder-api:latest
+          ssh -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_HOST << 'EOF'
+          docker pull ${{ secrets.DOCKER_USERNAME }}/cv-builder-api:latest
           docker stop cv-builder-api || true
           docker rm cv-builder-api || true
-          docker run -d -p 8081:8081 --name cv-builder-api ${{ DOCKER_USERNAME }}/cv-builder-api:latest
+          docker run -d -p 8081:8081 --name cv-builder-api ${{ secrets.DOCKER_USERNAME }}/cv-builder-api:latest
           EOF
