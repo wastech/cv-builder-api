@@ -91,7 +91,6 @@ jobs:
       - name: Build and push Docker image
         run: |
           docker buildx build --tag ${{ secrets.DOCKER_USERNAME }}/cv-builder-api:latest --push .
-
       - name: Deploy to server
         run: |
           ssh -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_HOST << 'EOF'
