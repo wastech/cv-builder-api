@@ -54,11 +54,13 @@ jobs:
         run: |
           docker buildx build --cache-from=type=local,src=/tmp/.buildx-cache --cache-to=type=local,dest=/tmp/.buildx-cache --tag ${{ secrets.DOCKER_USERNAME }}/cv-builder-api:latest --load .
 
+      # Use Docker Compose V2 command syntax
       - name: Run Docker Compose
-        run: docker-compose up -d
+        run: docker compose up -d
 
+      # Use Docker Compose V2 command syntax
       - name: Test the application
-        run: docker-compose exec -T cv-builder-api mvn test
+        run: docker compose exec -T cv-builder-api mvn test
 
       - name: Archive test results
         if: always()
