@@ -40,17 +40,17 @@ jobs:
         uses: docker/setup-buildx-action@v1
 
       - name: Cache Docker layers
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
-          path: /tmp/.buildx-cachef
+          path: /tmp/.buildx-cache
           key: ${{ runner.os }}-buildx-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-buildx-
 
       - name: Build and tag Docker image
         run: |
-          docker buildx build --cache-from=type=local,src=/tmp/.buildx-cache --cache-to=type=local,dest=/tmp/.buildx-cache --tag cv-builder-api:latest .
-          docker tag cv-builder-api:latest ${{ secrets.DOCKER_USERNAME }}/cv-builder-api:latest
+          docker buildx build --cache-from=type=local,src=/tmp/.buildx-cache --cache-to=type=local,dest=/tmp/.buildx-cache --tag ${{ secrets.DOCKER_USERNAME }}/cv-builder-api:latest .
+          docker tag ${{ secrets.DOCKER_USERNAME }}/cv-builder-api:latest ${{ secrets.DOCKER_USERNAME }}/cv-builder-api:latest
 
       - name: Run Docker Compose
         run: docker-compose up -d
@@ -77,7 +77,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
