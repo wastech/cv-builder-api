@@ -27,7 +27,7 @@ jobs:
           POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
         options: >-
-          --health-cmd "pg_isready -U ${{ secrets.POSTGRES_USER }} -d ${{ secrets.POSTGRES_DB }}"
+          --health-cmd "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -35,9 +35,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Prepare cache directory
-        run: mkdir -p /tmp/.buildx-cache
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
@@ -52,7 +49,8 @@ jobs:
 
       - name: Build and tag Docker image
         run: |
-          docker buildx build --cache-from=type=local,src=/tmp/.buildx-cache --cache-to=type=local,dest=/tmp/.buildx-cache --push --tag ${{ secrets.DOCKER_USERNAME }}/cv-builder-api:latest .
+          docker buildx build --cache-from=type=local,src=/tmp/.buildx-cache --cache-to=type=local,dest=/tmp/.buildx-cache --tag ${{ secrets.DOCKER_USERNAME }}/cv-builder-api:latest .
+          docker tag ${{ secrets.DOCKER_USERNAME }}/cv-builder-api:latest ${{ secrets.DOCKER_USERNAME }}/cv-builder-api:latest
 
       - name: Run Docker Compose
         run: docker-compose up -d
@@ -92,13 +90,13 @@ jobs:
 
       - name: Build and push Docker image
         run: |
-          docker buildx build --push --tag ${{ secrets.DOCKER_USERNAME }}/cv-builder-api:latest .
+          docker buildx build --tag ${{ secrets.DOCKER_USERNAME }}/cv-builder-api:latest --push .
 
       - name: Deploy to server
         run: |
           ssh -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_HOST << 'EOF'
-          docker pull ${{ secrets.DOCKER_USERNAME }}/cv-builder-api/latest
+          docker pull ${{ secrets.DOCKER_USERNAME }}/cv-builder-api:latest
           docker stop cv-builder-api || true
           docker rm cv-builder-api || true
-          docker run -d -p 8081:8081 --name cv-builder-api ${{ secrets.DOCKER_USERNAME }}/cv-builder-api/latest
+          docker run -d -p 8081:8081 --name cv-builder-api ${{ secrets.DOCKER_USERNAME }}/cv-builder-api:latest
           EOF
