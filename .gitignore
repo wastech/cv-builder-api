@@ -38,3 +38,4 @@ build/
 !application.properties
 
 env.properties
+.env
