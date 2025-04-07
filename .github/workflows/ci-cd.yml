@@ -17,8 +17,6 @@ jobs:
       POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
       POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
       JWT_SECRET: ${{ secrets.JWT_SECRET }}
-      POSTGRES_PORT: ${{ POSTGRES_PORT }}
-      POSTGRES_HOST: ${{ POSTGRES_HOST }}
       JWT_EXPIRATION_MS: ${{ secrets.JWT_EXPIRATION_MS }}
       JWT_COOKIE_NAME: ${{ secrets.JWT_COOKIE_NAME }}
       CLOUDINARY_NAME: ${{ secrets.CLOUDINARY_NAME }}
@@ -38,8 +36,6 @@ jobs:
           POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
           POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-          POSTGRES_PORT: ${{ POSTGRES_PORT }}
-          POSTGRES_HOST: ${{ POSTGRES_HOST }}
         options: >-
           --health-cmd "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"
           --health-interval 10s
@@ -161,24 +157,22 @@ jobs:
           docker stop cv-builder-api || true
           docker rm cv-builder-api || true
           docker run -d -p 8081:8081 --name cv-builder-api \
-            -e SPRING_DATASOURCE_URL=jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB} \
-            -e SPRING_DATASOURCE_USERNAME=${POSTGRES_USER} \
-            -e SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD} \
+            -e SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/${{ secrets.POSTGRES_DB }} \
+            -e SPRING_DATASOURCE_USERNAME=${{ secrets.POSTGRES_USER }} \
+            -e SPRING_DATASOURCE_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} \
             -e SPRING_JPA_HIBERNATE_DDL_AUTO=update \
-            -e SPRING_APP_JWTSECRET=${JWT_SECRET} \
-            -e SPRING_APP_JWTEXPIRATIONMS=${JWT_EXPIRATION_MS} \
-            -e SPRING_ECOM_APP_JWTCOOKIENAME=${JWT_COOKIE_NAME} \
+            -e SPRING_APP_JWTSECRET=${{ secrets.JWT_SECRET }} \
+            -e SPRING_APP_JWTEXPIRATIONMS=${{ secrets.JWT_EXPIRATION_MS }} \
+            -e SPRING_ECOM_APP_JWTCOOKIENAME=${{ secrets.JWT_COOKIE_NAME }} \
             -e FRONTEND_URL=https://your-production-frontend-url.com \
-            -e POSTGRES_HOST=${POSTGRES_HOST} \
-            -e POSTGRES_PORT=${POSTGRES_PORT} \
             -e IMAGE_BASE_URL=https://your-production-api-url.com/images \
-            -e CLOUDINARY_CLOUD_NAME=${CLOUDINARY_NAME} \
-            -e CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY} \
-            -e CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET} \
-            -e SPRING_MAIL_HOST=${MAIL_HOST} \
-            -e SPRING_MAIL_PORT=${MAIL_PORT} \
-            -e SPRING_MAIL_USERNAME=${MAIL_USERNAME} \
-            -e SPRING_MAIL_PASSWORD=${MAIL_PASSWORD} \
+            -e CLOUDINARY_CLOUD_NAME=${{ secrets.CLOUDINARY_NAME }} \
+            -e CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }} \
+            -e CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }} \
+            -e SPRING_MAIL_HOST=${{ secrets.MAIL_HOST }} \
+            -e SPRING_MAIL_PORT=${{ secrets.MAIL_PORT }} \
+            -e SPRING_MAIL_USERNAME=${{ secrets.MAIL_USERNAME }} \
+            -e SPRING_MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }} \
             -e SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH=true \
             -e SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE=true \
             ${{ secrets.DOCKER_USERNAME }}/cv-builder-api:latest

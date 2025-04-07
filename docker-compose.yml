@@ -1,179 +1,52 @@
-name: CI/CD Pipeline
+version: '3.8'
 
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+services:
+  postgres:
+    image: postgres:13
+    container_name: postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+  cv-builder-api:
+    build: .
+    container_name: cv-builder-api
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "false"
+      SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL: "false"
+      SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: 10
+      SPRING_DATASOURCE_HIKARI_CONNECTION_TIMEOUT: 20000
+      SPRING_DATASOURCE_HIKARI_IDLE_TIMEOUT: 300000
+      SERVER_PORT: 8081
+      SPRING_APP_JWTSECRET: ${JWT_SECRET}
+      SPRING_APP_JWTEXPIRATIONMS: ${JWT_EXPIRATION_MS}
+      SPRING_ECOM_APP_JWTCOOKIENAME: ${JWT_COOKIE_NAME}
+      FRONTEND_URL: http://localhost:5173/
+      IMAGE_BASE_URL: http://localhost:8080/images
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_NAME}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
+      SPRING_MAIL_HOST: ${MAIL_HOST}
+      SPRING_MAIL_PORT: ${MAIL_PORT}
+      SPRING_MAIL_USERNAME: ${MAIL_USERNAME}
+      SPRING_MAIL_PASSWORD: ${MAIL_PASSWORD}
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: "true"
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: "true"
+      SPRINGDOC_API_DOCS_PATH: /v3/api-docs
+      SPRINGDOC_SWAGGER_UI_PATH: /swagger-ui.html
+    ports:
+      - "0:8081"
+    depends_on:
+      - postgres
 
-    env:
-      POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
-      POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-      JWT_SECRET: ${{ secrets.JWT_SECRET }}
-      JWT_EXPIRATION_MS: ${{ secrets.JWT_EXPIRATION_MS }}
-      JWT_COOKIE_NAME: ${{ secrets.JWT_COOKIE_NAME }}
-      CLOUDINARY_NAME: ${{ secrets.CLOUDINARY_NAME }}
-      CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
-      CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
-      MAIL_HOST: ${{ secrets.MAIL_HOST }}
-      MAIL_PORT: ${{ secrets.MAIL_PORT }}
-      MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
-      MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
-
-    services:
-      postgres:
-        image: postgres:13
-        ports:
-          - 5432:5432
-        env:
-          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
-          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-        options: >-
-          --health-cmd "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up JDK
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'corretto'
-          java-version: '21'
-          cache: 'maven'
-
-      - name: Run tests with Maven
-        run: mvn test
-
-      - name: Archive test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results
-          path: target/surefire-reports/
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-
-      - name: Set up cache directory
-        run: mkdir -p /tmp/.buildx-cache
-
-      - name: Cache Docker layers
-        uses: actions/cache@v4
-        with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-
-
-      - name: Build and tag Docker image
-        run: |
-          docker buildx build --cache-from=type=local,src=/tmp/.buildx-cache --cache-to=type=local,dest=/tmp/.buildx-cache --tag ${{ secrets.DOCKER_USERNAME }}/cv-builder-api:latest --load .
-
-      - name: Run Docker Compose
-        run: docker compose up -d
-
-      - name: Verify application is running
-        run: |
-          # Wait for the application to start (adjust the sleep time as needed)
-          sleep 30
-          # Use curl to check if the application is responding
-          # Replace the URL with the appropriate health check endpoint
-          docker ps
-          CONTAINER_PORT=$(docker port cv-builder-api 8081)
-          if [ -z "$CONTAINER_PORT" ]; then
-            echo "Failed to get container port mapping"
-            exit 1
-          fi
-          echo "Application is available at: $CONTAINER_PORT"
-          # Extract just the port number from the mapping
-          PORT_NUMBER=$(echo $CONTAINER_PORT | sed 's/.*://')
-          curl -f http://localhost:$PORT_NUMBER/actuator/health || exit 1
-
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build
-    if: github.ref == 'refs/heads/main'
-
-    env:
-      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-      DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-
-      - name: Set up cache directory
-        run: mkdir -p /tmp/.buildx-cache
-
-      - name: Cache Docker layers
-        uses: actions/cache@v4
-        with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-
-
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/cv-builder-api:latest
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache-new
-
-      - name: Move cache
-        run: |
-          rm -rf /tmp/.buildx-cache
-          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
-
-      - name: Deploy to server
-        run: |
-          ssh -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_HOST << 'EOF'
-          docker pull ${{ secrets.DOCKER_USERNAME }}/cv-builder-api:latest
-          docker stop cv-builder-api || true
-          docker rm cv-builder-api || true
-          docker run -d -p 8081:8081 --name cv-builder-api \
-            -e SPRING_DATASOURCE_URL=jdbc:postgresql://${{ secrets.POSTGRES_HOST }}:${{ secrets.POSTGRES_PORT }}/${{ secrets.POSTGRES_DB }} \
-            -e SPRING_DATASOURCE_USERNAME=${{ secrets.POSTGRES_USER }} \
-            -e SPRING_DATASOURCE_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} \
-            -e SPRING_JPA_HIBERNATE_DDL_AUTO=update \
-            -e SPRING_APP_JWTSECRET=${{ secrets.JWT_SECRET }} \
-            -e SPRING_APP_JWTEXPIRATIONMS=${{ secrets.JWT_EXPIRATION_MS }} \
-            -e SPRING_ECOM_APP_JWTCOOKIENAME=${{ secrets.JWT_COOKIE_NAME }} \
-            -e FRONTEND_URL=https://your-production-frontend-url.com \
-            -e IMAGE_BASE_URL=https://your-production-api-url.com/images \
-            -e CLOUDINARY_CLOUD_NAME=${{ secrets.CLOUDINARY_NAME }} \
-            -e CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }} \
-            -e CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }} \
-            -e SPRING_MAIL_HOST=${{ secrets.MAIL_HOST }} \
-            -e SPRING_MAIL_PORT=${{ secrets.MAIL_PORT }} \
-            -e SPRING_MAIL_USERNAME=${{ secrets.MAIL_USERNAME }} \
-            -e SPRING_MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }} \
-            -e SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH=true \
-            -e SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE=true \
-            ${{ secrets.DOCKER_USERNAME }}/cv-builder-api:latest
-          EOF
+volumes:
+  postgres_data:
