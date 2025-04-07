@@ -17,7 +17,7 @@ services:
     build: .
     container_name: cv-builder-api
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${{ secrets.POSTGRES_DB }}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
