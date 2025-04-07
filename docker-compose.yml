@@ -44,7 +44,7 @@ services:
       SPRINGDOC_API_DOCS_PATH: /v3/api-docs
       SPRINGDOC_SWAGGER_UI_PATH: /swagger-ui.html
     ports:
-      - "0:8081"
+      - "8081:8081"
     depends_on:
       - postgres
 
