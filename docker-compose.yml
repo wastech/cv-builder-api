@@ -12,6 +12,11 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    env:
+      POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+      POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+
     services:
       postgres:
         image: postgres:13
@@ -64,6 +69,12 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
 
+    env:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -83,7 +94,7 @@ jobs:
 
       - name: Deploy to server
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} << 'EOF'
+          ssh -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_HOST << 'EOF'
           docker pull ${{ secrets.DOCKER_USERNAME }}/cv-builder-api:latest
           docker stop cv-builder-api || true
           docker rm cv-builder-api || true
