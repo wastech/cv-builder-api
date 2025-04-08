@@ -16,6 +16,8 @@ jobs:
       POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
       POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
       POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
       JWT_SECRET: ${{ secrets.JWT_SECRET }}
       JWT_EXPIRATION_MS: ${{ secrets.JWT_EXPIRATION_MS }}
       JWT_COOKIE_NAME: ${{ secrets.JWT_COOKIE_NAME }}
@@ -71,25 +73,45 @@ jobs:
         run: |
           docker buildx build --cache-from=type=local,src=/tmp/.buildx-cache --cache-to=type=local,dest=/tmp/.buildx-cache --tag ${{ secrets.DOCKER_USERNAME }}/cv-builder-api:latest --load .
 
+      - name: Create .env file
+        run: |
+          echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" > .env
+          echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .env
+          echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
+          echo "POSTGRES_HOST=postgres" >> .env
+          echo "POSTGRES_PORT=5432" >> .env
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+          echo "JWT_EXPIRATION_MS=${{ secrets.JWT_EXPIRATION_MS }}" >> .env
+          echo "JWT_COOKIE_NAME=${{ secrets.JWT_COOKIE_NAME }}" >> .env
+          echo "CLOUDINARY_NAME=${{ secrets.CLOUDINARY_NAME }}" >> .env
+          echo "CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }}" >> .env
+          echo "CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }}" >> .env
+          echo "MAIL_HOST=${{ secrets.MAIL_HOST }}" >> .env
+          echo "MAIL_PORT=${{ secrets.MAIL_PORT }}" >> .env
+          echo "MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}" >> .env
+          echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" >> .env
+
       - name: Run Docker Compose
         run: docker compose up -d
 
+      - name: Check running containers
+        run: docker ps -a
+
       - name: Verify application is running
         run: |
-          # Wait for the application to start (adjust the sleep time as needed)
-          sleep 30
-          # Use curl to check if the application is responding
-          # Replace the URL with the appropriate health check endpoint
-          docker ps
-          CONTAINER_PORT=$(docker port cv-builder-api 8081)
-          if [ -z "$CONTAINER_PORT" ]; then
-            echo "Failed to get container port mapping"
+          # Wait for the application to start
+          sleep 45
+          
+          # Check if the container is running
+          if ! docker ps | grep -q "cv-builder-api"; then
+            echo "Container cv-builder-api is not running"
+            docker logs cv-builder-api
             exit 1
           fi
-          echo "Application is available at: $CONTAINER_PORT"
-          # Extract just the port number from the mapping
-          PORT_NUMBER=$(echo $CONTAINER_PORT | sed 's/.*://')
-          curl -f http://localhost:$PORT_NUMBER/actuator/health || exit 1
+          
+          # Check if the application is responding
+          curl -f http://localhost:8081/actuator/health || exit 1
+          echo "Application is running successfully"
 
   deploy:
     runs-on: ubuntu-latest
@@ -142,7 +164,8 @@ jobs:
 
       - name: Deploy to server
         run: |
-          ssh -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_HOST << 'EOF'
+          echo "Deploying to production server..."
+          ssh -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} << 'EOF'
           docker pull ${{ secrets.DOCKER_USERNAME }}/cv-builder-api:latest
           docker stop cv-builder-api || true
           docker rm cv-builder-api || true
@@ -167,3 +190,4 @@ jobs:
             -e SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE=true \
             ${{ secrets.DOCKER_USERNAME }}/cv-builder-api:latest
           EOF
+          echo "Deployment completed successfully"
