@@ -43,6 +43,9 @@ services:
       SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: "true"
       SPRINGDOC_API_DOCS_PATH: /v3/api-docs
       SPRINGDOC_SWAGGER_UI_PATH: /swagger-ui.html
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,info
+      MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS: always
+      MANAGEMENT_SECURITY_ENABLED: "false"
     ports:
       - "8081:8081"
     depends_on:
